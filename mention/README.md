@@ -58,6 +58,10 @@ Claude commits, pushes and comments with, so trimming them does not keep Claude 
 whenever a mention asks, including when steered by text in an issue or comment that someone else wrote. The calling
 repository also needs that app installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
+On a pull request from a fork, GitHub passes no secrets to `pull_request_review` and `pull_request_review_comment` and
+makes their token read-only, so a mention in a review or an inline comment there fails without a reply. Mention Claude
+in a comment on the pull request's conversation instead: `issue_comment` runs in the base repository, secrets and all.
+
 Run it from a workflow of its own rather than alongside [`code-review`](../code-review): that action sets a prompt,
 which keeps a mention from being answered, and it ends every run in a review verdict, which a mention should never
 produce.
