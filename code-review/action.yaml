@@ -37,9 +37,11 @@ runs:
         prompt: |
           /code-review:code-review ${{ github.event.pull_request.html_url }}
 
-          Carry on past the command's first step, which stops when Claude has already commented on the pull request.
-          That guard is written for a one-off invocation; this review runs on every push, so an earlier run's review is
-          expected rather than a reason to skip this one.
+          Carry on past the command's eligibility check, in its first step and again where it repeats it, when it would
+          stop because Claude has already commented on the pull request or because the pull request does not seem to
+          need a review. That guard is written for a one-off invocation; this review runs on every push and its verdict
+          can be all that makes the pull request mergeable, so an earlier run's review is expected and an automated or
+          trivial change still needs reviewing rather than skipping.
 
           Overriding it takes on what it was crudely doing, which is keeping a finding from being raised twice. Read
           what you have already published with `mcp__github__get_pull_request_review_comments` and leave a finding
