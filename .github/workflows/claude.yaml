@@ -1,0 +1,65 @@
+---
+name: 'Claude'
+
+on:
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        description: 'OAuth token Claude works with, from `claude setup-token`.'
+        required: true
+
+# No permissions by default.
+permissions: {}
+
+# A called workflow sees the caller's `github` context, so each job picks out the events it answers from those the
+# caller subscribes to, and the other is skipped without starting a runner.
+jobs:
+  review:
+    name: 'Review'
+    if: "github.event_name == 'pull_request' && !github.event.pull_request.draft"
+    runs-on: 'ubuntu-latest'
+
+    # A push supersedes the review running against the commit before it. This is on the job rather than the workflow,
+    # where it would also cancel a mention and could collide with a group the caller sets.
+    concurrency:
+      cancel-in-progress: true
+      group: 'claude-review-${{ github.event.pull_request.number }}'
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: 'write'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v7'
+
+      - name: 'Review the pull request'
+        uses: 'spence-com-au/claude-code-action/code-review@master'
+        with:
+          claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
+
+  mention:
+    name: 'Mention'
+    if: |
+      contains(github.event.comment.body, '@claude') ||
+      contains(github.event.review.body, '@claude') ||
+      (github.event_name == 'issues' && (
+        contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
+      ))
+    runs-on: 'ubuntu-latest'
+
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+      issues: 'write'
+      pull-requests: 'write'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v7'
+
+      - name: 'Answer the mention'
+        uses: 'spence-com-au/claude-code-action/mention@master'
+        with:
+          claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
