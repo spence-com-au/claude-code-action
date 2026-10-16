@@ -58,6 +58,7 @@ runs:
           --allowedTools
             'mcp__github__add_comment_to_pending_review'
             'mcp__github__create_pending_pull_request_review'
+            'mcp__github__delete_pending_pull_request_review'
             'mcp__github__submit_pending_pull_request_review'
           --resume '${{ steps.review.outputs.session_id }}'
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
@@ -67,7 +68,9 @@ runs:
           always, ending in exactly one of three events:
 
           1. Open a pending review on `${{ github.event.pull_request.head.sha }}` with
-             `mcp__github__create_pending_pull_request_review`.
+             `mcp__github__create_pending_pull_request_review`. If GitHub refuses it because you already have a pending
+             review, that one is left over from an interrupted run: delete it with
+             `mcp__github__delete_pending_pull_request_review` rather than adding to it, then open yours again.
           2. Add each finding as an inline comment on the line it concerns with
              `mcp__github__add_comment_to_pending_review`, once per finding.
           3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body a summary of the review and the
