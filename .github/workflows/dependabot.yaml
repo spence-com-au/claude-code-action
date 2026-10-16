@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: 'Fetch the update metadata'
         id: 'metadata'
-        uses: 'dependabot/fetch-metadata@v2'
+        uses: 'dependabot/fetch-metadata@v3'
 
       # Callers use the actions at `@master`, so a merged update reaches every one of them on its next run. A major
       # bump can change the upstream behaviour the actions rely on, so it waits for a review instead.
