@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v7'
+        uses: 'actions/checkout@v7.0.1'
 
       - name: 'Review the pull request'
         uses: 'spence-com-au/claude-code-action/code-review@master'
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v7'
+        uses: 'actions/checkout@v7.0.1'
 
       - name: 'Answer the mention'
         uses: 'spence-com-au/claude-code-action/mention@master'
