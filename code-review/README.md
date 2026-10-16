@@ -42,7 +42,7 @@ jobs:
         uses: 'actions/checkout@v7'
 
       - name: 'Review the pull request'
-        uses: 'joshuaspence/claude-code-action/code-review@master'
+        uses: 'spence-com-au/claude-code-action/code-review@master'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 ```

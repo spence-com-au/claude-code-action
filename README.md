@@ -1,7 +1,7 @@
 # Claude Code Action
 
 GitHub Actions built on [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action), one per
-directory and each used as `joshuaspence/claude-code-action/<directory>@master`.
+directory and each used as `spence-com-au/claude-code-action/<directory>@master`.
 
 | Action                       | What it does                                                                    |
 |------------------------------|---------------------------------------------------------------------------------|

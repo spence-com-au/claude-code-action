@@ -47,7 +47,7 @@ jobs:
         uses: 'actions/checkout@v7'
 
       - name: 'Answer the mention'
-        uses: 'joshuaspence/claude-code-action/mention@master'
+        uses: 'spence-com-au/claude-code-action/mention@master'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 ```
