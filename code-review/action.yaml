@@ -6,6 +6,12 @@ inputs:
   claude_code_oauth_token:
     description: 'OAuth token Claude reviews with, from `claude setup-token`.'
     required: true
+  display_report:
+    description: 'Whether to write the report of the review session to the step summary.'
+    default: 'false'
+  show_full_output:
+    description: 'Whether to log every message of the review session, tool results included, to the job log.'
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -26,7 +32,7 @@ runs:
         claude_args: |
           --allowedTools 'mcp__github__get_pull_request_review_comments'
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
-        display_report: true
+        display_report: '${{ inputs.display_report }}'
         plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
         plugins: 'code-review@claude-code-plugins'
 
@@ -42,7 +48,7 @@ runs:
           Overriding it takes on what it was crudely doing, which is keeping a finding from being raised twice. Read
           what you have already published with `mcp__github__get_pull_request_review_comments` and leave a finding
           alone where it is already anchored to a line that has not changed since.
-        show_full_output: true
+        show_full_output: '${{ inputs.show_full_output }}'
 
     - name: 'Submit the review decision'
       id: 'verdict'
