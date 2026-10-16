@@ -115,7 +115,9 @@ runs:
         # `gh` applies `--jq` to each page on its own, so the pages are slurped into `jq` to be aggregated together.
         id="$(
           gh api "repos/${GH_REPO}/issues/${PR}/comments" --paginate \
-            | jq --slurp --arg marker "${MARKER}" '[add[] | select(.body | startswith($marker)) | .id] | last // empty'
+            | jq --slurp --arg marker "${MARKER}" \
+              '[add[] | select(.user.login == "github-actions[bot]" and (.body | startswith($marker))) | .id]
+                | last // empty'
         )"
 
         reviews="$(
