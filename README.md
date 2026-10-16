@@ -1,9 +1,9 @@
 # Claude Code Action
 
-A reusable workflow in which Claude reviews a pull request with the [`code-review`][code-review] plugin and publishes
-the review as a single pull request review: its findings as inline comments and its verdict as the event —
-`APPROVE` only when it would change nothing, `REQUEST_CHANGES` for anything it would, and `COMMENT` when it cannot
-decide. A run that submits no review comments on the pull request and fails.
+An action in which Claude reviews a pull request with the [`code-review`][code-review] plugin and publishes the
+review as a single pull request review: its findings as inline comments and its verdict as the event — `APPROVE` only
+when it would change nothing, `REQUEST_CHANGES` for anything it would, and `COMMENT` when it cannot decide. A run that
+submits no review comments on the pull request and fails.
 
 ## Usage
 
@@ -23,16 +23,33 @@ permissions: {}
 
 jobs:
   review:
-    uses: 'joshuaspence/claude-code-action/.github/workflows/claude-review.yaml@master'
+    name: 'Review'
+    if: '!github.event.pull_request.draft'
+    runs-on: 'ubuntu-latest'
+
+    # A push supersedes the review running against the commit before it.
+    concurrency:
+      cancel-in-progress: true
+      group: 'claude-review-${{ github.event.pull_request.number }}'
+
     permissions:
       contents: 'read'
       id-token: 'write'
       pull-requests: 'write'
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v7'
+
+      - name: 'Review the pull request'
+        uses: 'joshuaspence/claude-code-action@master'
+        with:
+          claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 ```
 
-The calling repository needs the [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
+The action reads the pull request from `github.event`, so it runs only on a `pull_request` event, and it needs the
+repository checked out and the three permissions above. The calling repository also needs the
+[Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 ## Gating merges on the verdict
 
