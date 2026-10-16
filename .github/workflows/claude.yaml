@@ -13,6 +13,9 @@ permissions: {}
 
 # A called workflow sees the caller's `github` context, so each job picks out the events it answers from those the
 # caller subscribes to, and the other is skipped without starting a runner.
+#
+# Each job checks out the actions at the commit this workflow was called at, so the two cannot drift apart. `uses` takes
+# no expression, and the checkout sits in the caller's workspace because a local action must.
 jobs:
   review:
     name: 'Review'
@@ -34,8 +37,18 @@ jobs:
       - name: 'Checkout'
         uses: 'actions/checkout@v7.0.1'
 
+      - name: 'Checkout the actions'
+        uses: 'actions/checkout@v7.0.1'
+        with:
+          path: '.claude-code-action'
+          ref: '${{ job.workflow_sha }}'
+          repository: '${{ job.workflow_repository }}'
+
+      - name: 'Hide the actions from Git'
+        run: 'echo /.claude-code-action/ >> .git/info/exclude'
+
       - name: 'Review the pull request'
-        uses: 'spence-com-au/claude-code-action/code-review@master'
+        uses: './.claude-code-action/code-review'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 
@@ -59,7 +72,17 @@ jobs:
       - name: 'Checkout'
         uses: 'actions/checkout@v7.0.1'
 
+      - name: 'Checkout the actions'
+        uses: 'actions/checkout@v7.0.1'
+        with:
+          path: '.claude-code-action'
+          ref: '${{ job.workflow_sha }}'
+          repository: '${{ job.workflow_repository }}'
+
+      - name: 'Hide the actions from Git'
+        run: 'echo /.claude-code-action/ >> .git/info/exclude'
+
       - name: 'Answer the mention'
-        uses: 'spence-com-au/claude-code-action/mention@master'
+        uses: './.claude-code-action/mention'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
