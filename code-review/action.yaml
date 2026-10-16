@@ -114,7 +114,6 @@ runs:
         RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
 
       run: |
-        # `gh` applies `--jq` to each page on its own, so the pages are slurped into `jq` to be aggregated together.
         id="$(
           gh api "repos/${GH_REPO}/issues/${PR}/comments" --paginate \
             | jq --slurp --arg marker "${MARKER}" \
