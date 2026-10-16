@@ -3,6 +3,9 @@ version: 2
 
 updates:
   - package-ecosystem: 'github-actions'
-    directory: '/'
+    directories:
+      - '/'
+      - '/code-review'
+      - '/mention'
     schedule:
       interval: 'weekly'
