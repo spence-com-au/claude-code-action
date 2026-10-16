@@ -53,8 +53,10 @@ jobs:
 ```
 
 The `if` keeps a comment that does not mention Claude from starting a runner; the action would find no mention and
-stop anyway. `contents: 'write'` is what lets Claude push a change it was asked for, so drop it to keep it to replies.
-The calling repository also needs the [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
+stop anyway. The job's `permissions` govern `GITHUB_TOKEN`, not the [Claude GitHub app][app]'s installation token that
+Claude commits, pushes and comments with, so trimming them does not keep Claude to replies: it can push a branch
+whenever a mention asks, including when steered by text in an issue or comment that someone else wrote. The calling
+repository also needs that app installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 Run it from a workflow of its own rather than alongside [`code-review`](../code-review): that action sets a prompt,
 which keeps a mention from being answered, and it ends every run in a review verdict, which a mention should never
