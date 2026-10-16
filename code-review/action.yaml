@@ -109,17 +109,16 @@ runs:
         RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
 
       run: |
+        # `gh` applies `--jq` to each page on its own, so the pages are slurped into `jq` to be aggregated together.
         id="$(
-          gh api "repos/${GH_REPO}/issues/${PR}/comments" \
-            --paginate \
-            --jq "[.[] | select(.body | startswith(\"${MARKER}\")) | .id] | last // empty"
+          gh api "repos/${GH_REPO}/issues/${PR}/comments" --paginate \
+            | jq --slurp --arg marker "${MARKER}" '[add[] | select(.body | startswith($marker)) | .id] | last // empty'
         )"
 
         reviews="$(
-          gh api "repos/${GH_REPO}/pulls/${PR}/reviews" \
-            --paginate \
-            --jq "[.[] | select(.user.login == \"claude[bot]\" and .commit_id == \"${HEAD_SHA}\"
-              and .state != \"PENDING\")] | length"
+          gh api "repos/${GH_REPO}/pulls/${PR}/reviews" --paginate \
+            | jq --slurp --arg sha "${HEAD_SHA}" \
+              '[add[] | select(.user.login == "claude[bot]" and .commit_id == $sha and .state != "PENDING")] | length'
         )"
 
         if [ "${reviews}" -gt 0 ]; then
