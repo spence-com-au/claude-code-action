@@ -118,7 +118,8 @@ runs:
         reviews="$(
           gh api "repos/${GH_REPO}/pulls/${PR}/reviews" \
             --paginate \
-            --jq "[.[] | select(.user.login == \"claude[bot]\" and .commit_id == \"${HEAD_SHA}\" and .state != \"PENDING\")] | length"
+            --jq "[.[] | select(.user.login == \"claude[bot]\" and .commit_id == \"${HEAD_SHA}\"
+              and .state != \"PENDING\")] | length"
         )"
 
         if [ "${reviews}" -gt 0 ]; then
@@ -129,14 +130,9 @@ runs:
           exit 0
         fi
 
+        # GitHub renders each line break in a comment, so the template keeps every paragraph on one line.
         body="$(mktemp)"
-        cat > "${body}" <<EOT
-        ${MARKER}
-
-        Claude submitted no review of \`${HEAD_SHA}\`, so this pull request carries no approval and no requested change.
-
-        [The run](${RUN_URL}) names the step that failed. The action is refused a token when this pull request edits the workflow that runs the review, when \`CLAUDE_CODE_OAUTH_TOKEN\` is missing or expired, and when the pull request comes from a fork, which cannot read secrets. Past that, the review or the verdict step failed, or the verdict step ended without submitting a review.
-        EOT
+        envsubst '${HEAD_SHA} ${MARKER} ${RUN_URL}' < "${GITHUB_ACTION_PATH}/no-verdict.md" > "${body}"
 
         if [ -n "${id}" ]; then
           gh api --silent --method PATCH "repos/${GH_REPO}/issues/comments/${id}" --field "body=@${body}"
