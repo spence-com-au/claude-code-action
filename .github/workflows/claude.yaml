@@ -45,7 +45,7 @@ jobs:
           repository: '${{ job.workflow_repository }}'
 
       - name: 'Hide the actions from Git'
-        run: 'echo /.claude-code-action/ >> .git/info/exclude'
+        run: 'echo "/.claude-code-action/" >> .git/info/exclude'
 
       - name: 'Review the pull request'
         uses: './.claude-code-action/code-review'
@@ -80,7 +80,7 @@ jobs:
           repository: '${{ job.workflow_repository }}'
 
       - name: 'Hide the actions from Git'
-        run: 'echo /.claude-code-action/ >> .git/info/exclude'
+        run: 'echo "/.claude-code-action/" >> .git/info/exclude'
 
       - name: 'Answer the mention'
         uses: './.claude-code-action/mention'
