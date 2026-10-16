@@ -8,10 +8,10 @@ inputs:
     required: true
   display_report:
     description: 'Whether to write the report of the session to the step summary.'
-    default: 'true'
+    default: 'false'
   show_full_output:
     description: 'Whether to log every message of the session, tool results included, to the job log.'
-    default: 'true'
+    default: 'false'
 
 runs:
   using: 'composite'
