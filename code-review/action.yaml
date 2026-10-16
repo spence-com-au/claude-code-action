@@ -25,7 +25,7 @@ runs:
       env:
         CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
 
-      uses: 'anthropics/claude-code-action@v1'
+      uses: 'anthropics/claude-code-action@v1.0.251'
       with:
         # The action starts the MCP server behind this tool only when `--allowedTools` names it.
         claude_args: |
@@ -54,7 +54,7 @@ runs:
       # Without `!cancelled()` this carries an implicit `success()`, which skips the step for a review that fails after
       # opening a session — the one case where there is a review to submit and no verdict.
       if: "!cancelled() && steps.review.outputs.session_id != ''"
-      uses: 'anthropics/claude-code-action@v1'
+      uses: 'anthropics/claude-code-action@v1.0.251'
       with:
         claude_args: |
           --allowedTools
