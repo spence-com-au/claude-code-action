@@ -46,6 +46,14 @@ runs:
           `mcp__github__get_pull_request_diff` wherever the command says `gh pr view` or `gh pr diff`, and tell the
           agents you launch to do the same. The `gh` commands are not granted here.
 
+          Follow every step of the command, launching each agent it names. Reading the diff yourself does not stand in
+          for them: the review is the work those agents do, and a verdict reached without them has not had it.
+
+          The pull request is checked out in the working directory. Where judging the change needs something outside
+          the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
+          agents you launch they can do the same. Not having looked at a file you could have read is no reason to hold
+          back a verdict; read it instead.
+
           Carry on past the command's eligibility check, in its first step and again where it repeats it, when it would
           stop because Claude has already commented on the pull request or because the pull request does not seem to
           need a review. That guard is written for a one-off invocation; this review runs on every push and its verdict
