@@ -27,13 +27,13 @@ runs:
 
       uses: 'anthropics/claude-code-action@v1.0.251'
       with:
-        # The command's `allowed-tools` frontmatter does not reach this session, so it is refused the `gh` commands it
-        # reads the pull request with unless they are granted here. The action starts the MCP server behind
-        # `mcp__github__get_pull_request_review_comments` only when `--allowedTools` names it.
+        # The command's `allowed-tools` frontmatter does not reach this session, so it reads the pull request with the
+        # GitHub MCP tools granted here in place of the `gh` commands it names. The action starts the MCP server behind
+        # them only when `--allowedTools` names one.
         claude_args: |
           --allowedTools
-            'Bash(gh pr diff:*)'
-            'Bash(gh pr view:*)'
+            'mcp__github__get_pull_request'
+            'mcp__github__get_pull_request_diff'
             'mcp__github__get_pull_request_review_comments'
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
         display_report: '${{ inputs.display_report }}'
@@ -41,6 +41,10 @@ runs:
         plugins: 'code-review@claude-code-plugins'
         prompt: |
           /code-review:code-review ${{ github.event.pull_request.html_url }}
+
+          Read the pull request with `mcp__github__get_pull_request` and its diff with
+          `mcp__github__get_pull_request_diff` wherever the command says `gh pr view` or `gh pr diff`, and tell the
+          agents you launch to do the same. The `gh` commands are not granted here.
 
           Carry on past the command's eligibility check, in its first step and again where it repeats it, when it would
           stop because Claude has already commented on the pull request or because the pull request does not seem to
