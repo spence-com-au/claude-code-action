@@ -51,6 +51,10 @@ runs:
           Overriding it takes on what it was crudely doing, which is keeping a finding from being raised twice. Read
           what you have already published with `mcp__github__get_pull_request_review_comments` and leave a finding
           alone where it is already anchored to a line that has not changed since.
+
+          Do not build the pull request or run its tests. Its own checks do that and report beside this review, so a
+          review that has read the whole change is complete without them, and not having run them is no reason to hold
+          back a verdict.
         show_full_output: '${{ inputs.show_full_output }}'
 
     - name: 'Submit the review decision'
