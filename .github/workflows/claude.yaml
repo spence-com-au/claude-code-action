@@ -16,6 +16,10 @@ permissions: {}
 #
 # Each job checks out the actions at the commit this workflow was called at, so the two cannot drift apart. `uses` takes
 # no expression, and the checkout sits in the caller's workspace because a local action must.
+#
+# The action logs the session's messages only when `ACTIONS_STEP_DEBUG` is in its environment, which re-running a job
+# with debug logging does not put there, so each job passes `runner.debug` on. The caller's log carries the transcript,
+# tool results included, and is public wherever the caller is.
 jobs:
   review:
     name: 'Review'
@@ -51,6 +55,7 @@ jobs:
         uses: './.claude-code-action/code-review'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
+          show_full_output: '${{ runner.debug == ''1'' }}'
 
   mention:
     name: 'Mention'
@@ -86,3 +91,4 @@ jobs:
         uses: './.claude-code-action/mention'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
+          show_full_output: '${{ runner.debug == ''1'' }}'
