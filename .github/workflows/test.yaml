@@ -1,0 +1,135 @@
+---
+name: 'Test'
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test.yaml'
+      - 'code-review/**'
+      - 'tests/code-review/**'
+
+permissions: {}
+
+jobs:
+  # Reviews a standing fixture pull request whose one bug shows only in a file outside its diff: `speed.py` calls
+  # `Vec2.magnitude()`, which `geometry.py` on the base branch does not define. A review that keeps to the diff cannot
+  # tell, so this fails unless the review reads beyond it.
+  #
+  # The fixture is a standing pull request rather than one opened per run, because `GITHUB_TOKEN` can open one only
+  # where Actions may also approve pull requests, which would let any workflow pass the approval this review gates.
+  reads-beyond-the-diff:
+    name: 'Reads beyond the diff'
+
+    # Dependabot's runs are not given `CLAUDE_CODE_OAUTH_TOKEN`.
+    if: "github.event.pull_request.user.type != 'Bot'"
+    runs-on: 'ubuntu-latest'
+
+    # Every run rewrites the same fixture, so runs queue rather than overlap.
+    concurrency:
+      cancel-in-progress: false
+      group: 'test-reads-beyond-the-diff'
+
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+      pull-requests: 'write'
+
+    env:
+      BASE: 'fixtures/reads-beyond-the-diff/base'
+      GH_REPO: '${{ github.repository }}'
+      GH_TOKEN: '${{ github.token }}'
+      HEAD: 'fixtures/reads-beyond-the-diff/head'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v7.0.1'
+
+      # The review reads the working directory, so it gets the action and none of the tests, whose comments name the
+      # bug it is meant to find.
+      - name: 'Checkout the actions'
+        uses: 'actions/checkout@v7.0.1'
+        with:
+          path: '.claude-code-action'
+          sparse-checkout: 'code-review'
+
+      - name: 'Hide the actions from Git'
+        run: 'echo "/.claude-code-action/" >> .git/info/exclude'
+
+      # The fixture's branches are rebuilt from `tests/` on every run, which gives its pull request a new head commit
+      # for the review and keeps the fixture in one place.
+      - name: 'Rebuild the fixture'
+        id: 'fixture'
+        run: |
+          fixture="${RUNNER_TEMP}/fixture"
+          cp -R tests/code-review/reads-beyond-the-diff "${fixture}"
+          echo "FIXTURE=${fixture}" >> "${GITHUB_ENV}"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git switch --quiet --orphan "${BASE}"
+          cp -R "${fixture}/base/." .
+          git add .
+          git commit --quiet --message 'Add two-dimensional vectors'
+
+          git switch --quiet --create "${HEAD}"
+          cp -R "${fixture}/head/." .
+          git add .
+          git commit --quiet --message 'Limit the speed of moving bodies'
+
+          git push --quiet --force origin "${BASE}" "${HEAD}"
+
+          number="$(
+            gh pr list --head "${HEAD}" --base "${BASE}" --state open --json number --jq '.[0].number // empty'
+          )"
+          if [ -z "${number}" ]; then
+            echo "::error::No open pull request from \`${HEAD}\` into \`${BASE}\` to review."
+            exit 1
+          fi
+
+          echo "number=${number}" >> "${GITHUB_OUTPUT}"
+          echo "head-sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+        shell: 'bash'
+
+      # The review leaves alone a finding already anchored to an unchanged line, so an earlier run's comment on the bug
+      # would keep this one from raising it.
+      - name: 'Clear earlier findings'
+        env:
+          PR: '${{ steps.fixture.outputs.number }}'
+        run: |
+          gh api "repos/${GH_REPO}/pulls/${PR}/comments" --paginate \
+            --jq '.[] | select(.user.login == "claude[bot]") | .id' \
+            | while read -r id; do
+                gh api --silent --method DELETE "repos/${GH_REPO}/pulls/comments/${id}"
+              done
+        shell: 'bash'
+
+      - name: 'Review the fixture'
+        uses: './.claude-code-action/code-review'
+        with:
+          claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
+          pull_request: '${{ steps.fixture.outputs.number }}'
+          show_full_output: '${{ runner.debug == ''1'' }}'
+
+      - name: 'Expect changes requested on the bug'
+        env:
+          HEAD_SHA: '${{ steps.fixture.outputs.head-sha }}'
+          PR: '${{ steps.fixture.outputs.number }}'
+        run: |
+          state="$(
+            gh api "repos/${GH_REPO}/pulls/${PR}/reviews" --paginate \
+              | jq --slurp --raw-output --arg sha "${HEAD_SHA}" \
+                '[add[] | select(.user.login == "claude[bot]" and .commit_id == $sha)] | last | .state // "none"'
+          )"
+
+          line="$(grep --line-number --fixed-strings 'magnitude()' "${FIXTURE}/head/speed.py" | cut -d: -f1)"
+          comments="$(
+            gh api "repos/${GH_REPO}/pulls/${PR}/comments" --paginate \
+              | jq --slurp --arg sha "${HEAD_SHA}" --argjson line "${line}" \
+                '[add[] | select(.user.login == "claude[bot]" and .commit_id == $sha
+                  and .path == "speed.py" and .line == $line)] | length'
+          )"
+
+          echo "Review of ${HEAD_SHA}: ${state}, with ${comments} comment(s) on \`speed.py\` line ${line}."
+          [ "${state}" = 'CHANGES_REQUESTED' ] && [ "${comments}" -gt 0 ]
+        shell: 'bash'
