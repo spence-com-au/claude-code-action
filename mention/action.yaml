@@ -3,12 +3,21 @@ name: 'Claude Mention'
 description: 'Answer a comment, review or issue that mentions `@claude`, acting on it where asked.'
 
 inputs:
+  allowed_tools:
+    description: 'Tools Claude may use on top of the action''s own, as shell words such as `''Bash(npm test)''`.'
+    default: ''
   claude_code_oauth_token:
     description: 'OAuth token Claude works with, from `claude setup-token`.'
     required: true
   display_report:
     description: 'Whether to write the report of the session to the step summary.'
     default: 'false'
+  plugin_marketplaces:
+    description: 'Git URLs of plugin marketplaces to add, one per line.'
+    default: ''
+  plugins:
+    description: 'Plugins to install, one per line, such as `name@marketplace`.'
+    default: ''
   show_full_output:
     description: 'Whether to log every message of the session, tool results included, to the job log.'
     default: 'false'
@@ -19,6 +28,11 @@ runs:
     - name: 'Answer the mention'
       uses: 'anthropics/claude-code-action@v1.0.251'
       with:
+        # A bare `--allowedTools` is read as a flag with no value, so it is left out when no tools are given.
+        claude_args: "${{ inputs.allowed_tools && format('--allowedTools {0}', inputs.allowed_tools) || '' }}"
+
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
         display_report: '${{ inputs.display_report }}'
+        plugin_marketplaces: '${{ inputs.plugin_marketplaces }}'
+        plugins: '${{ inputs.plugins }}'
         show_full_output: '${{ inputs.show_full_output }}'
