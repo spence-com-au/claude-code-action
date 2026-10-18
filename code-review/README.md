@@ -47,8 +47,8 @@ jobs:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 ```
 
-The action reads the pull request from `github.event`, so it runs only on a `pull_request` event, and it needs the
-repository checked out and the three permissions above. The calling repository also needs the
+The action reviews the pull request that triggered it, or the one its `pull_request` input names, and it runs only on a
+`pull_request` event either way. It needs the pull request checked out and the three permissions above. The calling repository also needs the
 [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 ## Gating merges on the verdict

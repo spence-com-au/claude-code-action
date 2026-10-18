@@ -9,6 +9,9 @@ inputs:
   display_report:
     description: 'Whether to write the report of the review session to the step summary.'
     default: 'false'
+  pull_request:
+    description: 'Number of the pull request to review, in the repository the workflow runs in.'
+    default: '${{ github.event.pull_request.number }}'
   show_full_output:
     description: 'Whether to log every message of the review session, tool results included, to the job log.'
     default: 'false'
@@ -16,6 +19,19 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 'Look up the pull request'
+      id: 'pull-request'
+
+      env:
+        GH_REPO: '${{ github.repository }}'
+        GH_TOKEN: '${{ github.token }}'
+        PR: '${{ inputs.pull_request }}'
+
+      run: |
+        gh api "repos/${GH_REPO}/pulls/${PR}" \
+          --jq '"head-sha=\(.head.sha)", "url=\(.html_url)"' >> "${GITHUB_OUTPUT}"
+      shell: 'bash'
+
     - name: 'Ask Claude to review the pull request'
       id: 'review'
 
@@ -40,7 +56,7 @@ runs:
         plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
         plugins: 'code-review@claude-code-plugins'
         prompt: |
-          /code-review:code-review ${{ github.event.pull_request.html_url }}
+          /code-review:code-review ${{ steps.pull-request.outputs.url }}
 
           Read the pull request with `mcp__github__get_pull_request` and its diff with
           `mcp__github__get_pull_request_diff` wherever the command says `gh pr view` or `gh pr diff`, and tell the
@@ -82,7 +98,7 @@ runs:
           You have just reviewed this pull request, and nothing of it has been posted yet. Publish it as one review,
           always, ending in exactly one of three events:
 
-          1. Open a pending review on `${{ github.event.pull_request.head.sha }}` with
+          1. Open a pending review on `${{ steps.pull-request.outputs.head-sha }}` with
              `mcp__github__create_pending_pull_request_review`. If GitHub refuses it because you already have a pending
              review, that one is left over from an interrupted run: delete it with
              `mcp__github__delete_pending_pull_request_review` rather than adding to it, then open yours again.
@@ -125,9 +141,9 @@ runs:
       env:
         GH_REPO: '${{ github.repository }}'
         GH_TOKEN: '${{ github.token }}'
-        HEAD_SHA: '${{ github.event.pull_request.head.sha }}'
+        HEAD_SHA: '${{ steps.pull-request.outputs.head-sha }}'
         MARKER: '<!-- claude-review: no verdict -->'
-        PR: '${{ github.event.pull_request.number }}'
+        PR: '${{ inputs.pull_request }}'
         RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
 
       run: |
