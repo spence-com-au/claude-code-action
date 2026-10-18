@@ -39,11 +39,14 @@ runs:
         # The command's `allowed-tools` frontmatter does not reach this session, so it reads the pull request with the
         # GitHub MCP tools granted here in place of the `gh` commands it names. The action starts the MCP server behind
         # them only when `--allowedTools` names one.
+        #
+        # The server runs with a token that can write, so the review is granted only its read tools by prefix rather
+        # than `mcp__github__*`: publishing is the verdict step's alone.
         claude_args: |
           --allowedTools
-            'mcp__github__get_pull_request'
-            'mcp__github__get_pull_request_diff'
-            'mcp__github__get_pull_request_review_comments'
+            'mcp__github__get_*'
+            'mcp__github__list_*'
+            'mcp__github__search_*'
             ${{ inputs.allowed_tools }}
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
         display_report: '${{ inputs.display_report }}'
@@ -67,6 +70,11 @@ runs:
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
           agents you launch they can do the same. Not having looked at a file you could have read is no reason to hold
           back a verdict; read it instead.
+
+          Where it depends on something beyond this repository — an action it uses, a library it calls, the issue it
+          fixes — read it with the GitHub MCP tools granted here, code at the version the change pins, and tell the
+          agents you launch they can do the same. Not having read it is no more reason to hold back a verdict than an
+          unread file in the checkout.
 
           Carry on past the command's eligibility check, in its first step and again where it repeats it, when it would
           stop because Claude has already commented on the pull request or because the pull request does not seem to
