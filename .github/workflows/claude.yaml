@@ -24,10 +24,12 @@ jobs:
   review:
     name: 'Review'
 
-    # A pull request from Dependabot or a fork is passed no secrets, so its review would be refused a token and fail.
+    # A run that Dependabot triggers is passed no secrets, nor is one from a fork, so its review would be refused a
+    # token and fail. That turns on who triggered the run rather than who opened the pull request: a person who pushes
+    # to a Dependabot branch is passed them.
     if: |
       github.event_name == 'pull_request' && !github.event.pull_request.draft &&
-      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository
 
     runs-on: 'ubuntu-latest'
