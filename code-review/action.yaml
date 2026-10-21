@@ -36,6 +36,13 @@ runs:
 
       uses: 'anthropics/claude-code-action@v1.0.251'
       with:
+        # The action refuses a run that an app triggers unless it is allowed here, to keep apps from setting each other
+        # off. A review pushes nothing, so it sets nothing off, and an app's push needs reviewing as much as anyone's:
+        # Claude's own, answering a mention, is one. Any app can be allowed, despite the warning on the input, because
+        # on `pull_request` only an app that can push to the repository is passed the token, and the prompt is this
+        # action's rather than the app's.
+        allowed_bots: '*'
+
         # The command's `allowed-tools` frontmatter does not reach this session, so it reads the pull request with the
         # GitHub MCP tools granted here in place of the `gh` commands it names. The action starts the MCP server behind
         # them only when `--allowedTools` names one.
@@ -99,6 +106,9 @@ runs:
       if: "!cancelled() && steps.review.outputs.session_id != ''"
       uses: 'anthropics/claude-code-action@v1.0.251'
       with:
+        # The action checks who triggered the run again here, so this allows the same apps as the review step.
+        allowed_bots: '*'
+
         claude_args: |
           --allowedTools
             'mcp__github__add_comment_to_pending_review'
