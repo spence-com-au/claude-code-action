@@ -67,12 +67,23 @@ jobs:
 
   mention:
     name: 'Mention'
+
+    # The action turns away anyone who cannot write to the repository, but only once a runner has started and traded
+    # the job's OIDC token for the app's, which a stranger's mention would otherwise cost every time. The association
+    # also lets in members and collaborators who cannot write, so the action's check still decides. A comment's event
+    # carries the issue it is on as well, whose author may be someone else, so the comment's and review's come first.
     if: |
-      contains(github.event.comment.body, '@claude') ||
-      contains(github.event.review.body, '@claude') ||
-      (github.event_name == 'issues' && (
-        contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
-      ))
+      contains(fromJSON('["COLLABORATOR", "MEMBER", "OWNER"]'),
+        github.event.comment.author_association || github.event.review.author_association ||
+        github.event.issue.author_association
+      ) && (
+        contains(github.event.comment.body, '@claude') ||
+        contains(github.event.review.body, '@claude') ||
+        (github.event_name == 'issues' && (
+          contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
+        ))
+      )
+
     runs-on: 'ubuntu-latest'
 
     permissions:

@@ -29,11 +29,16 @@ jobs:
   mention:
     name: 'Mention'
     if: |
-      contains(github.event.comment.body, '@claude') ||
-      contains(github.event.review.body, '@claude') ||
-      (github.event_name == 'issues' && (
-        contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
-      ))
+      contains(fromJSON('["COLLABORATOR", "MEMBER", "OWNER"]'),
+        github.event.comment.author_association || github.event.review.author_association ||
+        github.event.issue.author_association
+      ) && (
+        contains(github.event.comment.body, '@claude') ||
+        contains(github.event.review.body, '@claude') ||
+        (github.event_name == 'issues' && (
+          contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
+        ))
+      )
     runs-on: 'ubuntu-latest'
 
     permissions:
@@ -52,11 +57,15 @@ jobs:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
 ```
 
-The `if` keeps a comment that does not mention Claude from starting a runner; the action would find no mention and
-stop anyway. The job's `permissions` govern `GITHUB_TOKEN`, not the [Claude GitHub app][app]'s installation token that
-Claude commits, pushes and comments with, so trimming them does not keep Claude to replies: it can push a branch
-whenever a mention asks, including when steered by text in an issue or comment that someone else wrote. The calling
-repository also needs that app installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
+The `if` keeps a comment that does not mention Claude, or that comes from anyone but an owner, member or collaborator,
+from starting a runner. The action would stop either anyway, but only once the runner had started and traded the job's
+OIDC token for the app's. The association also lets in members and collaborators who cannot write, so the action's own
+check, that whoever mentioned Claude can write to the repository, still decides. A comment's event carries the issue it
+is on as well, whose author may be someone else, so the comment's and review's are read first. The job's `permissions`
+govern `GITHUB_TOKEN`, not the [Claude GitHub app][app]'s installation token that Claude commits, pushes and comments
+with, so trimming them does not keep Claude to replies: it can push a branch whenever a mention asks, including when
+steered by text in an issue or comment that someone else wrote. The calling repository also needs that app installed and
+a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 On a pull request from a fork, GitHub passes no secrets to `pull_request_review` and `pull_request_review_comment` and
 makes their token read-only, so a mention in a review or an inline comment there fails without a reply. Mention Claude
