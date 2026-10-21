@@ -9,6 +9,12 @@ on:
     types:
       - 'opened'
   pull_request:
+    # The org `Workflows` ruleset reviews a pull request into `master`, and a review from here would share its
+    # concurrency group, so one would cancel the other. A ruleset can't review a pull request into any other branch, so
+    # this still does.
+    branches-ignore:
+      - 'master'
+
     types:
       - 'opened'
       - 'synchronize'
