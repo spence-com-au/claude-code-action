@@ -25,11 +25,6 @@ permissions: {}
 
 jobs:
   claude:
-    # A Dependabot pull request is passed no secrets, so its review would be refused a token and fail with a notice that
-    # it reached no verdict. `github.event.pull_request` is unset on `issue_comment` and `issues`, so a mention in a
-    # bot's pull request's conversation still runs.
-    if: "github.event.pull_request.user.type != 'Bot'"
-
     # Called at `@master`, as every other caller does, rather than from the checkout: a pull request that edits the
     # review's prompt would otherwise be reviewed by its own edit.
     uses: 'spence-com-au/claude-code-action/.github/workflows/claude.yaml@master'
