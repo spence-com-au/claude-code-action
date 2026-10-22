@@ -11,19 +11,19 @@ on:
 # No permissions by default.
 permissions: {}
 
-# A called workflow sees the caller's `github` context, so each job picks out the events it answers from those the
-# caller subscribes to, and the other is skipped without starting a runner.
-#
-# Each job checks out the actions at the commit this workflow was called at, so the two cannot drift apart. `uses` takes
+# The job checks out the action at the commit this workflow was called at, so the two cannot drift apart. `uses` takes
 # no expression, and the checkout sits in the caller's workspace because a local action must.
 #
 # The action logs the session's messages only when `ACTIONS_STEP_DEBUG` is in its environment, which re-running a job
-# with debug logging does not put there, so each job passes `runner.debug` on. The caller's log carries the transcript,
+# with debug logging does not put there, so the job passes `runner.debug` on. The caller's log carries the transcript,
 # tool results included, and is public wherever the caller is.
 jobs:
   review:
     name: 'Review'
 
+    # A called workflow sees the caller's `github` context, so on any event but a pull request the review is skipped
+    # without starting a runner.
+    #
     # A run that Dependabot triggers is passed no secrets, nor is one from a fork, so its review would be refused a
     # token and fail. That turns on who triggered the run rather than who opened the pull request: a person who pushes
     # to a Dependabot branch is passed them.
@@ -35,7 +35,7 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     # A push supersedes the review running against the commit before it. This is on the job rather than the workflow,
-    # where it would also cancel a mention and could collide with a group the caller sets.
+    # where it could collide with a group the caller sets.
     concurrency:
       cancel-in-progress: true
       group: 'claude-review-${{ github.event.pull_request.number }}'
@@ -61,42 +61,6 @@ jobs:
 
       - name: 'Review the pull request'
         uses: './.claude-code-action/code-review'
-        with:
-          claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
-          show_full_output: '${{ runner.debug == ''1'' }}'
-
-  mention:
-    name: 'Mention'
-    if: |
-      contains(github.event.comment.body, '@claude') ||
-      contains(github.event.review.body, '@claude') ||
-      (github.event_name == 'issues' && (
-        contains(github.event.issue.title, '@claude') || contains(github.event.issue.body, '@claude')
-      ))
-    runs-on: 'ubuntu-latest'
-
-    permissions:
-      contents: 'write'
-      id-token: 'write'
-      issues: 'write'
-      pull-requests: 'write'
-
-    steps:
-      - name: 'Checkout'
-        uses: 'actions/checkout@v7.0.1'
-
-      - name: 'Checkout the actions'
-        uses: 'actions/checkout@v7.0.1'
-        with:
-          path: '.claude-code-action'
-          ref: '${{ job.workflow_sha }}'
-          repository: '${{ job.workflow_repository }}'
-
-      - name: 'Hide the actions from Git'
-        run: 'echo "/.claude-code-action/" >> .git/info/exclude'
-
-      - name: 'Answer the mention'
-        uses: './.claude-code-action/mention'
         with:
           claude_code_oauth_token: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
           show_full_output: '${{ runner.debug == ''1'' }}'

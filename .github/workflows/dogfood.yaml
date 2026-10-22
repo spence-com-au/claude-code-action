@@ -2,12 +2,6 @@
 name: 'Dogfood'
 
 on:
-  issue_comment:
-    types:
-      - 'created'
-  issues:
-    types:
-      - 'opened'
   pull_request:
     # The org `Workflows` ruleset reviews a pull request into `master`, and a review from here would share its
     # concurrency group, so one would cancel the other. A ruleset can't review a pull request into any other branch, so
@@ -20,12 +14,6 @@ on:
       - 'synchronize'
       - 'ready_for_review'
       - 'reopened'
-  pull_request_review:
-    types:
-      - 'submitted'
-  pull_request_review_comment:
-    types:
-      - 'created'
 
 permissions: {}
 
@@ -36,9 +24,8 @@ jobs:
     uses: 'spence-com-au/claude-code-action/.github/workflows/claude.yaml@master'
 
     permissions:
-      contents: 'write'
+      contents: 'read'
       id-token: 'write'
-      issues: 'write'
       pull-requests: 'write'
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'
