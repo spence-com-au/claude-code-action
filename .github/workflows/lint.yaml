@@ -16,17 +16,17 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v7'
+        uses: 'actions/checkout@v7.0.1'
 
       - name: 'Lint the workflows'
-        uses: 'raven-actions/actionlint@v2'
+        uses: 'raven-actions/actionlint@v2.2.0'
 
   yamllint:
     name: 'yamllint'
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v7'
+        uses: 'actions/checkout@v7.0.1'
 
       - name: 'Lint the YAML'
         run: 'yamllint --format github --strict .'
