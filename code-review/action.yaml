@@ -4,7 +4,7 @@ description: 'Review a pull request with Claude, then approve it or request chan
 
 inputs:
   allowed_tools:
-    description: 'Tools the review may use on top of its own, as shell words such as `''Bash(npm test)''`.'
+    description: 'Tools the review may use on top of its own, as shell words such as `''WebFetch''`.'
     default: ''
   claude_code_oauth_token:
     description: 'OAuth token Claude reviews with, from `claude setup-token`.'
@@ -75,27 +75,22 @@ runs:
 
           The pull request is checked out in the working directory. Where judging the change needs something outside
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
-          agents you launch they can do the same. Not having looked at a file you could have read is no reason to hold
-          back a verdict; read it instead.
+          agents you launch they can do the same.
 
           Where it depends on something beyond this repository — an action it uses, a library it calls, the issue it
           fixes — read it with the GitHub MCP tools granted here, code at the version the change pins, and tell the
-          agents you launch they can do the same. Not having read it is no more reason to hold back a verdict than an
-          unread file in the checkout.
+          agents you launch they can do the same.
 
-          Carry on past the command's eligibility check, in its first step and again where it repeats it, when it would
-          stop because Claude has already commented on the pull request or because the pull request does not seem to
-          need a review. That guard is written for a one-off invocation; this review runs on every push and its verdict
-          can be all that makes the pull request mergeable, so an earlier run's review is expected and an automated or
-          trivial change still needs reviewing rather than skipping.
-
-          Overriding it takes on what it was crudely doing, which is keeping a finding from being raised twice. Read
-          what you have already published with `mcp__github__get_pull_request_review_comments` and leave a finding
-          alone where it is already anchored to a line that has not changed since.
+          Carry on wherever the command would stop because Claude has already commented on the pull request or because
+          it does not seem to need a review. This review runs on every push and its verdict can be all that makes the
+          pull request mergeable, so an earlier run's review is expected and a trivial or automated change still gets
+          reviewed. Read what you have already published with `mcp__github__get_pull_request_review_comments`: a finding
+          already anchored to a line that has not changed since is still a finding.
 
           Do not build the pull request or run its tests, and do not look into its CI: whether it has checks, what they
           run or what they report. None of that is part of this review, so a review that has read the whole change is
-          complete without it, and not knowing it is no reason to hold back a verdict.
+          complete without it. Nothing this tells you to leave alone is a reason to hold back a verdict, and nothing you
+          could have read is one either: read it instead.
         show_full_output: '${{ inputs.show_full_output }}'
 
     - name: 'Submit the review decision'
@@ -127,27 +122,22 @@ runs:
              review, that one is left over from an interrupted run: delete it with
              `mcp__github__delete_pending_pull_request_review` rather than adding to it, then open yours again.
           2. Add each finding as an inline comment on the line it concerns with
-             `mcp__github__add_comment_to_pending_review`, once per finding.
+             `mcp__github__add_comment_to_pending_review`, once per finding. Leave out one that an earlier review of
+             yours already has on a line that has not changed since, but count it toward the event all the same.
           3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body a summary of the review and the
              reason for the event.
 
-          Treat your approval as the last look this pull request gets. It may be all that makes it mergeable, and where
-          auto-merge has been switched on it merges the moment you approve. So an approval means there is nothing left
-          to do — not "nothing worth blocking on". Anything you would change before it merged does not get changed once
-          you approve; it ships as it stands.
-
-          `APPROVE` only if you would change nothing — no nit, no "one small thing", no note you would leave for the
-          author to consider first. If you catch yourself writing "minor", "not worth blocking" or "would merge as-is"
-          while describing something you would nonetheless change, it is not an approval. Say in a sentence or two why
-          it is clean.
+          Your approval may be all that makes this pull request mergeable, and with auto-merge on, it merges the moment
+          you approve. So `APPROVE` only if you would change nothing — no nit, no "one small thing". If you catch
+          yourself writing "minor", "not worth blocking" or "would merge as-is" about something you would nonetheless
+          change, it is not an approval. Say in a sentence or two why it is clean.
 
           `REQUEST_CHANGES` if there is anything you would change before it merges, however small — a comment that
-          misstates the code, a typo, a stray naming inconsistency, a missing case. Name the change specifically
-          enough to act on. The review of the next push decides again.
+          misstates the code, a typo, a stray naming inconsistency, a missing case. Name each change specifically enough
+          to act on. The review of the next push decides again.
 
-          `COMMENT` if you reached neither of those, and say why not — you could not read part of it, or the change is
-          outside what you can judge. It is a decision not to decide, and it leaves the pull request waiting for a
-          human. Its body says what you did not review and why, and nothing for the author to act on.
+          `COMMENT` if you reached neither, and say why not — you could not read part of it, or it is outside what you
+          can judge. It leaves the pull request waiting for a human, and its body has nothing for the author to act on.
 
           Anything you raise for the author is a finding, whatever you call it — "not a bug, but", "an edge case", "the
           author may want to look at" — so it goes inline and makes the event `REQUEST_CHANGES`, even when part of the
