@@ -34,7 +34,7 @@ runs:
       env:
         CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
 
-      uses: 'anthropics/claude-code-action@v1.0.251'
+      uses: 'anthropics/claude-code-action@v1.0.255'
       with:
         # The action refuses a run that an app triggers unless it is allowed here, to keep apps from setting each other
         # off. A review pushes nothing, so it sets nothing off, and an app's push needs reviewing as much as anyone's:
@@ -104,7 +104,7 @@ runs:
       # Without `!cancelled()` this carries an implicit `success()`, which skips the step for a review that fails after
       # opening a session — the one case where there is a review to submit and no verdict.
       if: "!cancelled() && steps.review.outputs.session_id != ''"
-      uses: 'anthropics/claude-code-action@v1.0.251'
+      uses: 'anthropics/claude-code-action@v1.0.255'
       with:
         # The action checks who triggered the run again here, so this allows the same apps as the review step.
         allowed_bots: '*'
