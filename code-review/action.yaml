@@ -73,6 +73,18 @@ runs:
           Follow every step of the command, launching each agent it names. Reading the diff yourself does not stand in
           for them: the review is the work those agents do, and a verdict reached without them has not had it.
 
+          Alongside the command's bug agents, launch one more Opus agent to judge whether the change is the best fix for
+          what the pull request sets out to do, rather than only whether it works. Starting from the problem its title,
+          description and any linked issue state, it asks whether the change fixes the cause rather than a symptom,
+          whether it sits where the problem lives, whether it reimplements something the repository or a dependency
+          already provides, and whether it is larger than the problem needs. It flags an approach only where it can name
+          a concrete alternative and say why it is better, having read beyond the diff to check that the alternative
+          exists and would work. One approach preferred to another that is as good is taste rather than a finding.
+
+          Validate its findings in the command's validation step as you do the bug agents', with an Opus agent that
+          confirms the alternative is real and better. The command's bar against subjective suggestions and improvements
+          does not reach them: a better fix, named concretely and validated, is what this agent exists to raise.
+
           The pull request is checked out in the working directory. Where judging the change needs something outside
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
           agents you launch they can do the same. Not having looked at a file you could have read is no reason to hold
@@ -141,9 +153,9 @@ runs:
           while describing something you would nonetheless change, it is not an approval. Say in a sentence or two why
           it is clean.
 
-          `REQUEST_CHANGES` if there is anything you would change before it merges, however small — a comment that
-          misstates the code, a typo, a stray naming inconsistency, a missing case. Name the change specifically
-          enough to act on. The review of the next push decides again.
+          `REQUEST_CHANGES` if there is anything you would change before it merges, however small — a better fix than
+          the one it takes, a comment that misstates the code, a typo, a stray naming inconsistency, a missing case.
+          Name the change specifically enough to act on. The review of the next push decides again.
 
           `COMMENT` if you reached neither of those, and say why not — you could not read part of it, or the change is
           outside what you can judge. It is a decision not to decide, and it leaves the pull request waiting for a
