@@ -9,3 +9,8 @@ updates:
       - '/mention'
     schedule:
       interval: 'weekly'
+    groups:
+      claude-code-action:
+        patterns:
+          - 'anthropics/claude-code-action'
+        group-by: 'dependency-name'
