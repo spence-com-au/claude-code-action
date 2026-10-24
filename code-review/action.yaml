@@ -25,6 +25,31 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    # The diff shows a file stored in Git LFS only as its pointer, and the checkout leaves it a pointer unless asked for
+    # LFS, so this fetches the content of those the pull request changes. Only those: the rest of the repository's LFS
+    # objects can be large, and the review has no use for them.
+    - name: 'Fetch the files the pull request changes in Git LFS'
+
+      env:
+        GH_REPO: '${{ github.repository }}'
+        GH_TOKEN: '${{ github.token }}'
+        PR: '${{ github.event.pull_request.number }}'
+
+      # `git check-attr` reads `.gitattributes` without Git LFS, so a repository that does not use it needs none
+      # installed.
+      run: |
+        include="$(
+          gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[].filename' \
+            | git -c core.quotePath=false check-attr --stdin filter \
+            | sed -n 's/: filter: lfs$//p' \
+            | paste -sd ,
+        )"
+
+        if [ -n "${include}" ]; then
+          git lfs pull --include "${include}"
+        fi
+      shell: 'bash'
+
     - name: 'Ask Claude to review the pull request'
       id: 'review'
 
@@ -93,7 +118,8 @@ runs:
 
           The pull request is checked out in the working directory. Where judging the change needs something outside
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
-          agents you launch they can do the same.
+          agents you launch they can do the same. A file the diff shows as a Git LFS pointer has its content checked
+          out, so judge that rather than the pointer.
 
           Where it depends on something beyond this repository — an action it uses, a library it calls, the issue it
           fixes — read it with the GitHub MCP tools granted here, code at the version the change pins, and tell the

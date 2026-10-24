@@ -57,6 +57,11 @@ The action reads the pull request from `github.event`, so it runs only on a `pul
 repository checked out and the three permissions above. The calling repository also needs the
 [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
+The action fetches the content of each file the pull request changes in Git LFS, which the diff shows only as a
+pointer, so the checkout needs no `lfs: true`. It fetches them with the credentials the checkout leaves behind, so a
+repository that uses LFS needs the checkout's default `persist-credentials` and a runner with Git LFS installed, as
+GitHub's hosted runners are.
+
 ## Gating merges on the verdict
 
 The verdict only gates a merge where a ruleset on the default branch requires an approving review. Turn on
