@@ -36,18 +36,20 @@ runs:
         PR: '${{ github.event.pull_request.number }}'
 
       # `git check-attr` reads `.gitattributes` without Git LFS, so a repository that does not use it needs none
-      # installed.
+      # installed. Each file is smudged by path rather than pulled with `--include`, which takes comma-separated globs
+      # that a comma, `*`, `?` or `[` in a name would break.
       run: |
-        include="$(
-          gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[].filename' \
-            | git -c core.quotePath=false check-attr --stdin filter \
-            | sed -n 's/: filter: lfs$//p' \
-            | paste -sd ,
-        )"
+        content="$(mktemp)"
 
-        if [ -n "${include}" ]; then
-          git lfs pull --include "${include}"
-        fi
+        gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[].filename' \
+          | git -c core.quotePath=false check-attr --stdin filter \
+          | sed -n 's/: filter: lfs$//p' \
+          | while IFS= read -r path; do
+              if [ -f "${path}" ]; then
+                git lfs smudge "${path}" < "${path}" > "${content}"
+                cp "${content}" "${path}"
+              fi
+            done
       shell: 'bash'
 
     - name: 'Ask Claude to review the pull request'
