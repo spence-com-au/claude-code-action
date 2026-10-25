@@ -76,6 +76,12 @@ runs:
           Follow every step of the command, launching each agent it names. Reading the diff yourself does not stand in
           for them: the review is the work those agents do, and a verdict reached without them has not had it.
 
+          The command keeps its agents to high-signal issues, but this review approves only a change it would not alter
+          at all. So tell each review agent to flag, beside what the command asks of it, a comment or message that
+          misstates the code, a typo, a naming inconsistency within the change and a missing case, and have those
+          validated like any other issue. The rest of what the command rules out — pre-existing issues, matters of
+          taste, what a linter catches — stays out.
+
           The pull request is checked out in the working directory. Where judging the change needs something outside
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
           agents you launch they can do the same.
