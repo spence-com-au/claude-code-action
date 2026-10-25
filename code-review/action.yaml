@@ -93,8 +93,11 @@ runs:
           Carry on wherever the command would stop because Claude has already commented on the pull request or because
           it does not seem to need a review. This review runs on every push and its verdict can be all that makes the
           pull request mergeable, so an earlier run's review is expected and a trivial or automated change still gets
-          reviewed. Read what you have already published with `mcp__github__get_pull_request_review_comments`: a finding
-          already anchored to a line that has not changed since is still a finding.
+          reviewed. Read what you have already published: your reviews' bodies with
+          `mcp__github__get_pull_request_reviews`, and their inline comments and the replies to them with
+          `mcp__github__get_pull_request_review_comments`. A finding of yours that the change has not fixed is still a
+          finding, unless a reply shows it is wrong: check the reply against the code rather than taking it on trust,
+          and drop the finding only if the reply holds.
 
           Do not build the pull request or run its tests, and do not look into its CI: whether it has checks, what they
           run or what they report. None of that is part of this review, so a review that has read the whole change is
