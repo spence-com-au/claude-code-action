@@ -101,8 +101,7 @@ runs:
 
           Do not build the pull request or run its tests, and do not look into its CI: whether it has checks, what they
           run or what they report. None of that is part of this review, so a review that has read the whole change is
-          complete without it. Nothing this tells you to leave alone is a reason to hold back a verdict, and nothing you
-          could have read is one either: read it instead.
+          complete without it. A file you could have read but did not is another matter: read it.
         show_full_output: '${{ inputs.show_full_output }}'
 
     - name: 'Submit the review decision'
