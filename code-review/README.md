@@ -58,9 +58,7 @@ repository checked out and the three permissions above. The calling repository a
 [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 The action fetches the content of each file the pull request changes in Git LFS, which the diff shows only as a
-pointer, so the checkout needs no `lfs: true`. It fetches them with the credentials the checkout leaves behind, so a
-repository that uses LFS needs the checkout's default `persist-credentials` and a runner with Git LFS installed, as
-GitHub's hosted runners are.
+pointer, so the checkout needs no `lfs: true`.
 
 ## Gating merges on the verdict
 

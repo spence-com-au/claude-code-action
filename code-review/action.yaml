@@ -35,19 +35,22 @@ runs:
         GH_TOKEN: '${{ github.token }}'
         PR: '${{ github.event.pull_request.number }}'
 
-      # `git check-attr` reads `.gitattributes` without Git LFS, so a repository that does not use it needs none
-      # installed. Each file is smudged by path rather than pulled with `--include`, which takes comma-separated globs
-      # that a comma, `*`, `?` or `[` in a name would break.
+      # The contents API gives an LFS file a `download_url` on `media.githubusercontent.com` that serves its content,
+      # so the runner needs no Git LFS and the checkout no credentials. In a private repository that URL carries its own
+      # token, and sending `Authorization` as well makes it answer 404.
       run: |
-        content="$(mktemp)"
+        files="$(mktemp)"
 
-        gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[].filename' \
+        gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[] | {filename, contents_url}' > "${files}"
+
+        jq -r '.filename' "${files}" \
           | git -c core.quotePath=false check-attr --stdin filter \
           | sed -n 's/: filter: lfs$//p' \
           | while IFS= read -r path; do
               if [ -f "${path}" ]; then
-                git lfs smudge "${path}" < "${path}" > "${content}"
-                cp "${content}" "${path}"
+                contents_url="$(jq -r --arg path "${path}" 'select(.filename == $path) | .contents_url' "${files}")"
+                curl --fail --silent --show-error --location --output "${path}" \
+                  "$(gh api "${contents_url}" --jq '.download_url')"
               fi
             done
       shell: 'bash'
