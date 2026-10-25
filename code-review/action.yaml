@@ -66,9 +66,12 @@ runs:
         prompt: |
           /code-review:code-review ${{ github.event.pull_request.html_url }}
 
-          Read the pull request with `mcp__github__get_pull_request` and its diff with
-          `mcp__github__get_pull_request_diff` wherever the command says `gh pr view` or `gh pr diff`, and tell the
-          agents you launch to do the same. The `gh` commands are not granted here.
+          The `gh` commands the command names are not granted here, so use the GitHub MCP tool in place of each, and
+          tell the agents you launch to do the same: `mcp__github__get_pull_request` for `gh pr view`, with
+          `mcp__github__get_issue_comments` for its `--comments`; `mcp__github__get_pull_request_diff` for
+          `gh pr diff`; `mcp__github__get_issue` for `gh issue view`; `mcp__github__list_pull_requests` for
+          `gh pr list`; `mcp__github__list_issues` for `gh issue list`; and `mcp__github__search_issues` or
+          `mcp__github__search_code` for `gh search`.
 
           Follow every step of the command, launching each agent it names. Reading the diff yourself does not stand in
           for them: the review is the work those agents do, and a verdict reached without them has not had it.
