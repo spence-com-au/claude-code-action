@@ -44,8 +44,8 @@ runs:
         allowed_bots: '*'
 
         # The command's `allowed-tools` frontmatter does not reach this session, so the `gh` commands it reads with are
-        # granted here, and the GitHub MCP tools beside them, which the review reaches for first. The action starts the
-        # MCP server behind them only when `--allowedTools` names one.
+        # granted here, and the GitHub MCP tools beside them, so whichever the review picks is allowed. The action
+        # starts the MCP server behind them only when `--allowedTools` names one.
         #
         # `gh` and the server both run with a token that can write, so the review is granted only what reads:
         # publishing is the verdict step's alone. That leaves out the command's `gh pr comment`, and the MCP tools are
