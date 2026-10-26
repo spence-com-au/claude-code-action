@@ -116,8 +116,9 @@ runs:
     - name: 'Submit the review decision'
       id: 'verdict'
 
-      # Without `!cancelled()` this carries an implicit `success()`, which skips the step for a review that fails after
-      # opening a session — the one case where there is a review to submit and no verdict.
+      # A review that Claude does not finish — an API error, a turn limit — never sets `session_id`, so it skips this
+      # step and gets the no-verdict notice. Without `!cancelled()` this would also skip a review Claude did finish but
+      # whose step failed afterwards, in one of the action's `always()` post-steps — a review to submit with no verdict.
       if: "!cancelled() && steps.review.outputs.session_id != ''"
       uses: 'anthropics/claude-code-action@v1.0.255'
       with:
