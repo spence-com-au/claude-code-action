@@ -37,8 +37,10 @@ runs:
       uses: 'anthropics/claude-code-action@v1.0.255'
       with:
         # The action asks for a token that can write contents, issues and pull requests, and `gh` and the GitHub MCP
-        # server both run with it. These entries override those defaults rather than adding to them, so the review
-        # cannot publish whatever it is granted: publishing is the verdict step's alone, with a token of its own.
+        # server both run with it. These entries override those defaults rather than adding to them, so neither can
+        # publish: that is the verdict step's, with a token of its own. The job's `github.token` is in the session's
+        # environment too, as `DEFAULT_WORKFLOW_TOKEN` with whatever the caller grants it, so a shell tool added
+        # through `allowed_tools` could still publish with that.
         additional_permissions: |
           contents: read
           issues: read
