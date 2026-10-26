@@ -115,15 +115,16 @@ runs:
 
     # The prompt asks the review to launch every agent the command names, and nothing else holds it to that: a session
     # that reads the diff itself and skips them reaches a verdict all the same. So this counts the agents in the
-    # session's own record, and the verdict step runs only once the count reaches the four the command reviews with in
-    # parallel. It runs first because the verdict step writes its record to the same file.
+    # session's own record, and the verdict step runs only once the count reaches the seven the command launches on
+    # every review, before the one per issue it adds to validate them. It runs first because the verdict step writes its
+    # record to the same file.
     - name: 'Check that the review launched its agents'
       id: 'agents'
       if: "!cancelled() && steps.review.outputs.session_id != ''"
 
       env:
         EXECUTION_FILE: '${{ steps.review.outputs.execution_file }}'
-        MINIMUM: '4'
+        MINIMUM: '7'
 
       run: |
         launched="$(
@@ -131,8 +132,15 @@ runs:
                 | select(.type == "tool_use" and .name == "Agent")] | length' "${EXECUTION_FILE}"
         )"
 
+        # `jq` prints nothing for an empty file and a count per document for several, and comparing either errors inside
+        # the `if` below, which reads the error as false and lets the review through.
+        if [[ ! "${launched}" =~ ^[0-9]+$ ]]; then
+          echo "::error::The review's execution file does not hold one JSON array of messages."
+          exit 1
+        fi
+
         if [ "${launched}" -lt "${MINIMUM}" ]; then
-          echo "::error::The review launched ${launched} agents, fewer than the ${MINIMUM} the command reviews with."
+          echo "::error::The review launched ${launched} agents, fewer than the ${MINIMUM} the command always launches."
           exit 1
         fi
       shell: 'bash'

@@ -3,7 +3,7 @@
 An action in which Claude reviews a pull request with the [`code-review`][code-review] plugin and publishes the review
 as a single pull request review: its findings as inline comments and its verdict as the event — `APPROVE` only when it
 would change nothing, `REQUEST_CHANGES` for anything it would, and `COMMENT` when it cannot decide. A review that
-launches fewer than the four agents the plugin reviews with in parallel is not submitted. A run that submits no review
+launches fewer agents than the seven the plugin starts every review with is not submitted. A run that submits no review
 comments on the pull request and fails, and the next run that submits one deletes that comment.
 
 ## Usage
