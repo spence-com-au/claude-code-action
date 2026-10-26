@@ -37,6 +37,7 @@ jobs:
     runs-on: 'ubuntu-latest'
 
     permissions:
+      actions: 'read'
       contents: 'write'
       id-token: 'write'
       issues: 'write'
@@ -57,6 +58,12 @@ stop anyway. The job's `permissions` govern `GITHUB_TOKEN`, not the [Claude GitH
 Claude commits, pushes and comments with, so trimming them does not keep Claude to replies: it can push a branch
 whenever a mention asks, including when steered by text in an issue or comment that someone else wrote. The calling
 repository also needs that app installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
+
+On a pull request, Claude's CI tools read workflow runs and job logs with `GITHUB_TOKEN`, so that a mention can ask why
+a check failed, and `actions: 'read'` is what they need; without it the action skips them with a warning. They can
+fetch any run or job in the repository, not just the pull request's, and a job log holds whatever its workflow printed,
+masked only where GitHub knows the value is a secret. The token also sits in the environment Claude runs in, with every
+permission the job grants it.
 
 On a pull request from a fork, GitHub passes no secrets to `pull_request_review` and `pull_request_review_comment` and
 makes their token read-only, so a mention in a review or an inline comment there fails without a reply. Mention Claude
