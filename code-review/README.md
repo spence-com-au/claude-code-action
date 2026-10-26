@@ -24,7 +24,13 @@ permissions: {}
 jobs:
   review:
     name: 'Review'
-    if: '!github.event.pull_request.draft'
+
+    # A pull request from a fork is passed no secrets, so its review would be refused a token, and its `github.token`
+    # can only read, so it could not post the comment that explains why either.
+    if: |
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
     runs-on: 'ubuntu-latest'
 
     # A push supersedes the review running against the commit before it.
