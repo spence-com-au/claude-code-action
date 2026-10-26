@@ -43,14 +43,21 @@ runs:
         # action's rather than the app's.
         allowed_bots: '*'
 
-        # The command's `allowed-tools` frontmatter does not reach this session, so it reads the pull request with the
-        # GitHub MCP tools granted here in place of the `gh` commands it names. The action starts the MCP server behind
-        # them only when `--allowedTools` names one.
+        # The command's `allowed-tools` frontmatter does not reach this session, so the `gh` commands it reads with are
+        # granted here, and the GitHub MCP tools beside them, which the review reaches for first. The action starts the
+        # MCP server behind them only when `--allowedTools` names one.
         #
-        # The server runs with a token that can write, so the review is granted only its read tools by prefix rather
-        # than `mcp__github__*`: publishing is the verdict step's alone.
+        # `gh` and the server both run with a token that can write, so the review is granted only what reads:
+        # publishing is the verdict step's alone. That leaves out the command's `gh pr comment`, and the MCP tools are
+        # granted by prefix rather than as `mcp__github__*`.
         claude_args: |
           --allowedTools
+            'Bash(gh issue list:*)'
+            'Bash(gh issue view:*)'
+            'Bash(gh pr diff:*)'
+            'Bash(gh pr list:*)'
+            'Bash(gh pr view:*)'
+            'Bash(gh search:*)'
             'mcp__github__get_*'
             'mcp__github__list_*'
             'mcp__github__search_*'
@@ -65,13 +72,6 @@ runs:
           ${{ inputs.plugins }}
         prompt: |
           /code-review:code-review ${{ github.event.pull_request.html_url }}
-
-          The `gh` commands the command names are not granted here, so use the GitHub MCP tool in place of each, and
-          tell the agents you launch to do the same: `mcp__github__get_pull_request` for `gh pr view`, with
-          `mcp__github__get_issue_comments` for its `--comments`; `mcp__github__get_pull_request_diff` for
-          `gh pr diff`; `mcp__github__get_issue` for `gh issue view`; `mcp__github__list_pull_requests` for
-          `gh pr list`; `mcp__github__list_issues` for `gh issue list`; and `mcp__github__search_issues` or
-          `mcp__github__search_code` for `gh search`.
 
           Follow every step of the command, launching each agent it names. Reading the diff yourself does not stand in
           for them: the review is the work those agents do, and a verdict reached without them has not had it.
