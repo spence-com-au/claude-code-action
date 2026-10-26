@@ -36,6 +36,16 @@ runs:
 
       uses: 'anthropics/claude-code-action@v1.0.255'
       with:
+        # The action asks for a token that can write contents, issues and pull requests, and `gh` and the GitHub MCP
+        # server both run with it. These entries override those defaults rather than adding to them, so neither can
+        # publish: that is the verdict step's, with a token of its own. The job's `github.token` is in the session's
+        # environment too, as `DEFAULT_WORKFLOW_TOKEN` with whatever the caller grants it, so a shell tool added
+        # through `allowed_tools` could still publish with that.
+        additional_permissions: |
+          contents: read
+          issues: read
+          pull_requests: read
+
         # The action refuses a run that an app triggers unless it is allowed here, to keep apps from setting each other
         # off. A review pushes nothing, so it sets nothing off, and an app's push needs reviewing as much as anyone's:
         # Claude's own, answering a mention, is one. Any app can be allowed, despite the warning on the input, because
@@ -47,9 +57,8 @@ runs:
         # granted here, and the GitHub MCP tools beside them, so whichever the review picks is allowed. The action
         # starts the MCP server behind them only when `--allowedTools` names one.
         #
-        # `gh` and the server both run with a token that can write, so the review is granted only what reads:
-        # publishing is the verdict step's alone. That leaves out the command's `gh pr comment`, and the MCP tools are
-        # granted by prefix rather than as `mcp__github__*`.
+        # Only what reads is granted, so the review spends no turns on writes its token would refuse. That leaves out
+        # the command's `gh pr comment`, and the MCP tools are granted by prefix rather than as `mcp__github__*`.
         claude_args: |
           --allowedTools
             'Bash(gh issue list:*)'
