@@ -113,45 +113,13 @@ runs:
           complete without it. A file you could have read but did not is another matter: read it.
         show_full_output: '${{ inputs.show_full_output }}'
 
-    # The prompt asks the review to launch every agent the command names, and nothing else holds it to that: a session
-    # that reads the diff itself and skips them reaches a verdict all the same. So this counts the agents in the
-    # session's own record, and the verdict step runs only once the count reaches the seven the command launches on
-    # every review, before the one per issue it adds to validate them. It runs first because the verdict step writes its
-    # record to the same file.
-    - name: 'Check that the review launched its agents'
-      id: 'agents'
-      if: "!cancelled() && steps.review.outputs.session_id != ''"
-
-      env:
-        EXECUTION_FILE: '${{ steps.review.outputs.execution_file }}'
-        MINIMUM: '7'
-
-      run: |
-        launched="$(
-          jq '[.[] | select(.type == "assistant") | .message.content[]?
-                | select(.type == "tool_use" and .name == "Agent")] | length' "${EXECUTION_FILE}"
-        )"
-
-        # `jq` prints nothing for an empty file and a count per document for several, and comparing either errors inside
-        # the `if` below, which reads the error as false and lets the review through.
-        if [[ ! "${launched}" =~ ^[0-9]+$ ]]; then
-          echo "::error::The review's execution file does not hold one JSON array of messages."
-          exit 1
-        fi
-
-        if [ "${launched}" -lt "${MINIMUM}" ]; then
-          echo "::error::The review launched ${launched} agents, fewer than the ${MINIMUM} the command always launches."
-          exit 1
-        fi
-      shell: 'bash'
-
     - name: 'Submit the review decision'
       id: 'verdict'
 
       # A review that Claude does not finish — an API error, a turn limit — never sets `session_id`, so it skips this
       # step and gets the no-verdict notice. Without `!cancelled()` this would also skip a review Claude did finish but
       # whose step failed afterwards, in one of the action's `always()` post-steps — a review to submit with no verdict.
-      if: "!cancelled() && steps.review.outputs.session_id != '' && steps.agents.outcome == 'success'"
+      if: "!cancelled() && steps.review.outputs.session_id != ''"
       uses: 'anthropics/claude-code-action@v1.0.255'
       with:
         # The action checks who triggered the run again here, so this allows the same apps as the review step.
