@@ -33,26 +33,21 @@ runs:
       env:
         GH_REPO: '${{ github.repository }}'
         GH_TOKEN: '${{ github.token }}'
+        GIT_INDEX_FILE: '${{ runner.temp }}/lfs.index'
         PR: '${{ github.event.pull_request.number }}'
 
-      # The contents API gives an LFS file a `download_url` on `media.githubusercontent.com` that serves its content,
-      # so the runner needs no Git LFS and the checkout no credentials. In a private repository that URL carries its own
-      # token, and sending `Authorization` as well makes it answer 404.
+      # GitHub's runners configure the Git LFS filter system-wide, and the checkout skips it only for its own commands,
+      # so `checkout-index` writes an LFS file's content where the checkout wrote its pointer, and any other file as it
+      # was without running Git LFS. It writes nothing for a file the index records as up to date, as the checkout's
+      # index does every pointer, so it works from an index of its own, read from `HEAD` into `GIT_INDEX_FILE`, that
+      # records none. Git LFS authenticates with the credentials the checkout persists or, without them, with the job's
+      # token through `gh`.
       run: |
-        files="$(mktemp)"
+        git read-tree HEAD
 
-        gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate --jq '.[] | {filename, contents_url}' > "${files}"
-
-        jq -r '.filename' "${files}" \
-          | git -c core.quotePath=false check-attr --stdin filter \
-          | sed -n 's/: filter: lfs$//p' \
-          | while IFS= read -r path; do
-              if [ -f "${path}" ]; then
-                contents_url="$(jq -r --arg path "${path}" 'select(.filename == $path) | .contents_url' "${files}")"
-                curl --fail --silent --show-error --location --output "${path}" \
-                  "$(gh api "${contents_url}" --jq '.download_url')"
-              fi
-            done
+        gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate \
+          | jq --raw-output0 '.[] | select(.status != "removed") | .filename' \
+          | git -c credential.helper='!gh auth git-credential' checkout-index --force --stdin -z
       shell: 'bash'
 
     - name: 'Ask Claude to review the pull request'

@@ -57,8 +57,9 @@ The action reads the pull request from `github.event`, so it runs only on a `pul
 repository checked out and the three permissions above. The calling repository also needs the
 [Claude GitHub app][app] installed and a `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
-The action fetches the content of each file the pull request changes in Git LFS, which the diff shows only as a
-pointer, so the checkout needs no `lfs: true`.
+The action fetches the content of each file the pull request changes in Git LFS, which the diff shows only as a pointer,
+so the checkout needs no `lfs: true`. It does so with the runner's Git LFS, which GitHub's hosted runners have; on a
+runner without it, those files stay pointers.
 
 ## Gating merges on the verdict
 
