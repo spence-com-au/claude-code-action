@@ -3,5 +3,5 @@ paths:
   .github/workflows/*.yaml:
     ignore:
       # actionlint does not yet know `job.workflow_repository` or `job.workflow_sha`.
-      # See https://github.com/rhysd/actionlint/issues/757.
+      # See https://github.com/rhysd/actionlint/pull/707.
       - 'property "workflow_(repository|sha)" is not defined'
