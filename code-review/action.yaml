@@ -34,6 +34,7 @@ runs:
         GH_REPO: '${{ github.repository }}'
         GH_TOKEN: '${{ github.token }}'
         GIT_INDEX_FILE: '${{ runner.temp }}/lfs.index'
+        GIT_LFS_SKIP_DOWNLOAD_ERRORS: '1'
         PR: '${{ github.event.pull_request.number }}'
 
       # GitHub's runners configure the Git LFS filter system-wide, and the checkout skips it only for its own commands,
@@ -42,11 +43,18 @@ runs:
       # index does every pointer, so it works from an index of its own, read from `HEAD` into `GIT_INDEX_FILE`, that
       # records none. Git LFS authenticates with the credentials the checkout persists or, without them, with the job's
       # token through `gh`.
+      #
+      # The file list is the pull request as it stands now, but `HEAD` is the merge commit the run was triggered for,
+      # which a re-run after a later push predates, and `checkout-index` fails on a path the index lacks. So `ls-files`
+      # keeps only the paths `HEAD` has, read literally rather than as patterns, and `xargs -r` keeps it from listing
+      # every file when there are none. A file whose content can't be downloaded, such as an object never pushed, stays
+      # a pointer the review can still judge, rather than failing the step and with it the review.
       run: |
         git read-tree HEAD
 
         gh api "repos/${GH_REPO}/pulls/${PR}/files" --paginate \
-          | jq --raw-output0 '.[] | select(.status != "removed") | .filename' \
+          | jq --raw-output0 '.[].filename' \
+          | xargs -0 -r git --literal-pathspecs ls-files -z -- \
           | git -c credential.helper='!gh auth git-credential' checkout-index --force --stdin -z
       shell: 'bash'
 
@@ -119,7 +127,7 @@ runs:
           The pull request is checked out in the working directory. Where judging the change needs something outside
           the diff — a type it calls, a file it reads, a CLAUDE.md that governs it — read it with `Read`, and tell the
           agents you launch they can do the same. A file the diff shows as a Git LFS pointer has its content checked
-          out, so judge that rather than the pointer.
+          out unless it could not be downloaded, so judge that rather than the pointer.
 
           Where it depends on something beyond this repository — an action it uses, a library it calls, the issue it
           fixes — read it with the GitHub MCP tools granted here, code at the version the change pins, and tell the
