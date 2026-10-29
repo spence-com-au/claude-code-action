@@ -132,10 +132,10 @@ runs:
           Launch one more Opus agent to find prose the change has made wrong: a comment, doc comment, message or
           document, and the pull request's description, that says something of the code the change makes untrue. It
           checks what the change touches, then searches the repository for the names and behaviour the change alters,
-          since a file the diff does not touch can describe them too. Validate its findings as you do the bug agents',
-          telling each validator that the command's bar against pre-existing issues does not reach prose the change
-          makes wrong, wherever it sits, and having it confirm that this change, rather than an earlier one, makes the
-          prose untrue.
+          since a file the diff does not touch can describe them too. Tell it that the command's bar against
+          pre-existing issues does not reach prose the change makes wrong, wherever it sits. Validate its findings as
+          you do the bug agents', telling each validator the same and having it confirm that this change, rather than an
+          earlier one, makes the prose untrue.
 
           Alongside the command's bug agents, launch one more Opus agent to judge whether the change is the best way to
           do what the pull request sets out to do, rather than only whether it works. Starting from the goal its title,
