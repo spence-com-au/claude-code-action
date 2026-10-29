@@ -208,7 +208,8 @@ runs:
              finding with no line of the diff to sit on — about the approach as a whole, or about code the diff does not
              touch — goes in the review's body instead, as does one whose inline comment GitHub refuses.
           3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings that have no line
-             and those whose inline comment GitHub refused, a summary of the review and the reason for the event.
+             of the diff and those whose inline comment GitHub refused, a summary of the review and the reason for the
+             event.
 
           Your approval may be all that makes this pull request mergeable, and with auto-merge on, it merges the moment
           you approve. So `APPROVE` only if you would change nothing — no nit, no "one small thing". If you catch
