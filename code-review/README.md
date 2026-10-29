@@ -2,7 +2,7 @@
 
 An action in which Claude reviews a pull request with the [`code-review`][code-review] plugin, judging both whether the
 change works and whether it is the best way to do what it sets out to do, and publishes the review as a single pull
-request review: its findings as inline comments, or in the review body where GitHub will not take them inline, and its
+request review: its findings as inline comments, or in the review body where they have no line to sit on, and its
 verdict as the event — `APPROVE` only when it would change nothing, `REQUEST_CHANGES` for anything it would, and
 `COMMENT` when it cannot decide. A run that submits no review comments on the pull request and fails, and the next run
 that submits one deletes that comment.
