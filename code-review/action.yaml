@@ -124,17 +124,6 @@ runs:
           validated like any other issue. The rest of what the command rules out — pre-existing issues, matters of
           taste, what a linter catches — stays out.
 
-          Every issue this review leaves unreported is one the author learns of only from the review of a later push, so
-          each agent returns all the issues it finds rather than the most important. To let the bug agents read their
-          share closely rather than skim it, group the changed files by the part of the code they belong to and launch
-          the command's two bug agents for each group, each told the files of its group and free to read beyond them.
-
-          Launch one more Opus agent to find prose the change has made wrong: a comment, doc comment, message or
-          document, and the pull request's description, that says something of the code the change makes untrue. It
-          checks what the change touches, then searches the repository for the names and behaviour the change alters,
-          since a file the diff does not touch can describe them too. Prose the change makes wrong is not a
-          pre-existing issue, wherever it sits. Validate its findings as you do the bug agents'.
-
           Alongside the command's bug agents, launch one more Opus agent to judge whether the change is the best way to
           do what the pull request sets out to do, rather than only whether it works. Starting from the goal its title,
           description and any linked issue state, whether a problem to fix or something to add, it asks whether the
@@ -204,9 +193,9 @@ runs:
              `mcp__github__add_comment_to_pending_review`, once per finding. Leave out one that an earlier review of
              yours already has on a line that has not changed since, but count it toward the event all the same. A
              finding with no line of the diff to sit on — about the approach as a whole, or about code the diff does not
-             touch — goes in the review's body instead, as does one whose inline comment GitHub refuses.
-          3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings that are not
-             inline, a summary of the review and the reason for the event.
+             touch — goes in the review's body instead.
+          3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings that have no line,
+             a summary of the review and the reason for the event.
 
           Your approval may be all that makes this pull request mergeable, and with auto-merge on, it merges the moment
           you approve. So `APPROVE` only if you would change nothing — no nit, no "one small thing". If you catch
