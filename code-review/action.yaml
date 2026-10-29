@@ -207,8 +207,8 @@ runs:
              yours already has on a line that has not changed since, but count it toward the event all the same. A
              finding with no line of the diff to sit on — about the approach as a whole, or about code the diff does not
              touch — goes in the review's body instead, as does one whose inline comment GitHub refuses.
-          3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings that are not
-             inline, a summary of the review and the reason for the event.
+          3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings that have no line
+             and those whose inline comment GitHub refused, a summary of the review and the reason for the event.
 
           Your approval may be all that makes this pull request mergeable, and with auto-merge on, it merges the moment
           you approve. So `APPROVE` only if you would change nothing — no nit, no "one small thing". If you catch
@@ -223,7 +223,7 @@ runs:
           can judge. It leaves the pull request waiting for a human, and its body has nothing for the author to act on.
 
           Anything you raise for the author is a finding, whatever you call it — "not a bug, but", "an edge case", "the
-          author may want to look at" — so it goes inline, or in the body where it has no line, and makes the event
+          author may want to look at" — so it goes inline, or in the body where it cannot, and makes the event
           `REQUEST_CHANGES`, even when part of the pull request went unread. If it is not worth changing, leave it out
           of the review altogether.
 
