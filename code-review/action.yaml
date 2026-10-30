@@ -67,7 +67,7 @@ runs:
       env:
         CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1'
 
-      uses: 'anthropics/claude-code-action@v1.0.255'
+      uses: 'anthropics/claude-code-action@v1.0.264'
       with:
         # The action asks for a token that can write contents, issues and pull requests, and `gh` and the GitHub MCP
         # server both run with it. These entries override those defaults rather than adding to them, so neither can
@@ -157,7 +157,7 @@ runs:
       # step and gets the no-verdict notice. Without `!cancelled()` this would also skip a review Claude did finish but
       # whose step failed afterwards, in one of the action's `always()` post-steps — a review to submit with no verdict.
       if: "!cancelled() && steps.review.outputs.session_id != ''"
-      uses: 'anthropics/claude-code-action@v1.0.255'
+      uses: 'anthropics/claude-code-action@v1.0.264'
       with:
         # The action checks who triggered the run again here, so this allows the same apps as the review step.
         allowed_bots: '*'

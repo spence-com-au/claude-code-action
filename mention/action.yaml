@@ -26,7 +26,7 @@ runs:
   using: 'composite'
   steps:
     - name: 'Answer the mention'
-      uses: 'anthropics/claude-code-action@v1.0.255'
+      uses: 'anthropics/claude-code-action@v1.0.264'
       with:
         # A bare `--allowedTools` is read as a flag with no value, so it is left out when no tools are given.
         claude_args: "${{ inputs.allowed_tools && format('--allowedTools {0}', inputs.allowed_tools) || '' }}"
