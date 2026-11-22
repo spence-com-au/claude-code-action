@@ -162,11 +162,13 @@ runs:
         # The action checks who triggered the run again here, so this allows the same apps as the review step.
         allowed_bots: '*'
 
+        # Step 2 leaves out a finding an earlier review already has, so this can read those reviews' comments too.
         claude_args: |
           --allowedTools
             'mcp__github__add_comment_to_pending_review'
             'mcp__github__create_pending_pull_request_review'
             'mcp__github__delete_pending_pull_request_review'
+            'mcp__github__get_pull_request_review_comments'
             'mcp__github__submit_pending_pull_request_review'
           --resume '${{ steps.review.outputs.session_id }}'
         claude_code_oauth_token: '${{ inputs.claude_code_oauth_token }}'
@@ -181,9 +183,10 @@ runs:
              `mcp__github__delete_pending_pull_request_review` rather than adding to it, then open yours again.
           2. Add each finding as an inline comment on the line it concerns with
              `mcp__github__add_comment_to_pending_review`, once per finding. Leave out one that an earlier review of
-             yours already has on a line that has not changed since, but count it toward the event all the same. A
-             finding with no line of the diff to sit on — about the approach as a whole, or about code the diff does not
-             touch — goes in the review's body instead.
+             yours already has on a line that has not changed since, read with
+             `mcp__github__get_pull_request_review_comments`, but count it toward the event all the same. A finding with
+             no line of the diff to sit on — about the approach as a whole, or about code the diff does not touch — goes
+             in the review's body instead.
           3. Submit it with `mcp__github__submit_pending_pull_request_review`, its body the findings step 2 puts there,
              a summary of the review and the reason for the event.
 
